@@ -1,3 +1,10 @@
+export interface SugerenciaBusqueda {
+  texto: string
+  tipo: "comuna" | "direccion"
+  lat?: number
+  lng?: number
+}
+
 export type SucursalTipo =
   | "tradicional"
   | "24/7"

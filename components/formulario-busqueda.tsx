@@ -1,15 +1,16 @@
 "use client"
 
-import { LocateFixed, MapPinned, Search, X } from "lucide-react"
+import { LocateFixed, MapPinned, MapPin, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import type { SugerenciaBusqueda } from "@/lib/types"
 
 interface FormularioBusquedaProps {
   inputComuna: string
-  sugerencias: string[]
+  sugerencias: SugerenciaBusqueda[]
   onChangeInput: (valor: string) => void
   onSubmit: (e: React.FormEvent) => void
-  onSeleccionarSugerencia: (comuna: string) => void
+  onSeleccionarSugerencia: (sugerencia: SugerenciaBusqueda) => void
   /** Si se pasa, muestra el botón "Usar mi ubicación" a la derecha. */
   onUsarUbicacion?: () => void
 }
@@ -57,19 +58,29 @@ export function FormularioBusqueda({
 
           {/* Dropdown de sugerencias */}
           {sugerencias.length > 0 && (
-            <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
-              {sugerencias.map((c) => (
-                <li key={c}>
+            <ul className="absolute z-20 mt-1 w-full max-h-60 overflow-y-auto overflow-x-hidden rounded-lg border border-border bg-popover shadow-lg">
+              {sugerencias.map((s, idx) => (
+                <li key={`${s.texto}-${idx}`}>
                   <button
                     type="button"
-                    onClick={() => onSeleccionarSugerencia(c)}
+                    onClick={() => onSeleccionarSugerencia(s)}
                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-popover-foreground hover:bg-accent"
                   >
-                    <MapPinned
-                      className="size-4 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                    {c}
+                    {s.tipo === "comuna" ? (
+                      <MapPinned
+                        className="size-4 shrink-0 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <MapPin
+                        className="size-4 shrink-0 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span className="truncate">{s.texto}</span>
+                    <span className="ml-auto text-[10px] uppercase text-muted-foreground/70 shrink-0">
+                      {s.tipo}
+                    </span>
                   </button>
                 </li>
               ))}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import { AlertTriangle, LocateFixed, Search, SearchX, Wifi } from "lucide-react"
 import { FiltrosTipo, type FiltroTipo } from "@/components/filtros-tipo"
@@ -10,7 +10,9 @@ import { PanelInformativoTipo } from "@/components/panel-informativo-tipo"
 import { HojaSucursalMobile } from "@/components/hoja-sucursal-mobile"
 import { comunasDisponibles, sucursales } from "@/lib/sucursales"
 import { buscarSucursales, normalizar } from "@/lib/search"
+import type { SugerenciaBusqueda } from "@/lib/types"
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { useDebounce } from "@/hooks/use-debounce"
 
 const Mapa = dynamic(() => import("@/components/mapa"), {
   ssr: false,
@@ -30,7 +32,7 @@ export function BuscadorSucursales() {
   )
   const [activaId, setActivaId] = useState<string | null>(null)
   const [expandidaId, setExpandidaId] = useState<string | null>(null)
-  const [sugerencias, setSugerencias] = useState<string[]>([])
+  const [sugerencias, setSugerencias] = useState<SugerenciaBusqueda[]>([])
   const [busquedaRealizada, setBusquedaRealizada] = useState(true)
   /** Mensaje de advertencia / geo-fallback (no es un error bloqueante). */
   const [geoAviso, setGeoAviso] = useState<string | null>(null)
@@ -42,6 +44,68 @@ export function BuscadorSucursales() {
   const [hojaId, setHojaId] = useState<string | null>(null)
 
   const esMobile = useMediaQuery("(max-width: 1023px)")
+  const debouncedInput = useDebounce(inputComuna, 1000)
+  const skipSugerenciasRef = useRef(false)
+
+  useEffect(() => {
+    async function fetchSugerencias() {
+      if (skipSugerenciasRef.current) {
+        skipSugerenciasRef.current = false
+        return
+      }
+
+      const q = normalizar(debouncedInput)
+      if (q.length === 0) {
+        setSugerencias([])
+        return
+      }
+
+      // 1. Sugerencias locales (comunas)
+      const locales: SugerenciaBusqueda[] = comunasDisponibles
+        .filter((c) => normalizar(c).includes(q))
+        .slice(0, 5)
+        .map((c) => ({ texto: c, tipo: "comuna" }))
+
+      // 2. Si hay más de 3 letras, buscamos en la API de Nominatim
+      if (q.length >= 3) {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+              debouncedInput + ", Chile"
+            )}&format=json&limit=4&addressdetails=1`,
+            {
+              headers: {
+                "User-Agent": "StarkenStoreFinder/1.0",
+              },
+            }
+          )
+          const data = await res.json()
+          if (data && data.length > 0) {
+            const apiSuggs: SugerenciaBusqueda[] = data.map((d: any) => {
+              // Acortar el texto de Nominatim tomando solo las primeras 2 partes (ej: "Avenida Providencia, Providencia")
+              const partes = d.display_name.split(",")
+              const textoCorto = partes.slice(0, 2).join(",").trim()
+              return {
+                texto: textoCorto,
+                tipo: "direccion",
+                lat: parseFloat(d.lat),
+                lng: parseFloat(d.lon),
+              }
+            })
+            // Combinar locales y de API
+            setSugerencias([...locales, ...apiSuggs])
+            return
+          }
+        } catch (error) {
+          console.error("Error fetching address suggestions", error)
+        }
+      }
+      
+      setSugerencias(locales)
+    }
+
+    fetchSugerencias()
+  }, [debouncedInput])
 
   const resultados = useMemo(() => {
     if (!busquedaRealizada) return []
@@ -147,12 +211,7 @@ export function BuscadorSucursales() {
 
   function onChangeInput(valor: string) {
     setInputComuna(valor)
-    const q = normalizar(valor)
-    if (q.length >= 1) {
-      setSugerencias(
-        comunasDisponibles.filter((c) => normalizar(c).includes(q)).slice(0, 5),
-      )
-    } else {
+    if (valor.trim().length === 0) {
       setSugerencias([])
       setComunaBuscada(null)
       setReferencia(null)
@@ -164,9 +223,24 @@ export function BuscadorSucursales() {
     }
   }
 
-  function onSeleccionarSugerencia(c: string) {
-    setInputComuna(c)
-    ejecutarBusqueda(c)
+  function onSeleccionarSugerencia(sugerencia: SugerenciaBusqueda) {
+    skipSugerenciasRef.current = true
+    setInputComuna(sugerencia.texto)
+    setSugerencias([])
+    
+    if (sugerencia.tipo === "direccion" && sugerencia.lat && sugerencia.lng) {
+      // Evitamos llamar a la API de nuevo
+      setReferencia({ lat: sugerencia.lat, lng: sugerencia.lng })
+      setComunaBuscada(sugerencia.texto)
+      setBusquedaRealizada(true)
+      setActivaId(null)
+      setExpandidaId(null)
+      setHojaId(null)
+      setGeoAviso(null)
+      setGeoError(null)
+    } else {
+      ejecutarBusqueda(sugerencia.texto)
+    }
   }
 
   function usarMiUbicacion() {
@@ -273,7 +347,7 @@ export function BuscadorSucursales() {
         </div>
 
         {/* Input de búsqueda arriba del mapa */}
-        <div className="px-4 pt-3 pb-2">
+        <div className="relative z-[1000] px-4 pt-3 pb-2">
           <FormularioBusqueda
             inputComuna={inputComuna}
             sugerencias={sugerencias}

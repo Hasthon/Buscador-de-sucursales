@@ -23,7 +23,12 @@ const Mapa = dynamic(() => import("@/components/mapa"), {
   ),
 })
 
-export function BuscadorSucursales() {
+export interface BuscadorSucursalesProps {
+  /** Si es true, oculta el banner superior con el título y la descripción. */
+  hideHeader?: boolean
+}
+
+export function BuscadorSucursales({ hideHeader = false }: BuscadorSucursalesProps) {
   const [inputComuna, setInputComuna] = useState("")
   const [comunaBuscada, setComunaBuscada] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<FiltroTipo>("todas")
@@ -332,19 +337,21 @@ export function BuscadorSucursales() {
     return (
       <div className="flex flex-1 flex-col pb-8">
         {/* Banner de Cabecera Horizontal Compacto */}
-        <div className="bg-gradient-to-r from-[#e8f3ea]/70 via-card to-card border-b border-border px-4 py-3 flex flex-col gap-0.5 shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold text-primary tracking-wide uppercase">
-              Red Starken
-            </span>
+        {!hideHeader && (
+          <div className="bg-gradient-to-r from-[#e8f3ea]/70 via-card to-card border-b border-border px-4 py-3 flex flex-col gap-0.5 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold text-primary tracking-wide uppercase">
+                Red Starken
+              </span>
+            </div>
+            <h1 className="text-base font-black tracking-tight text-foreground font-[family-name:var(--font-exo)] leading-tight">
+              Encuentra tu Punto de Envío o Retiro
+            </h1>
+            <p className="text-[10px] text-muted-foreground leading-normal">
+              Ubica sucursales tradicionales, puntos 24/7, alianzas y Soy Starken en todo Chile.
+            </p>
           </div>
-          <h1 className="text-base font-black tracking-tight text-foreground font-[family-name:var(--font-exo)] leading-tight">
-            Encuentra tu Punto de Envío o Retiro
-          </h1>
-          <p className="text-[10px] text-muted-foreground leading-normal">
-            Ubica sucursales, buzones 24/7 y alianzas en todo Chile.
-          </p>
-        </div>
+        )}
 
         {/* Input de búsqueda arriba del mapa */}
         <div className="relative z-[1000] px-4 pt-3 pb-2">
@@ -414,22 +421,30 @@ export function BuscadorSucursales() {
 
         {/* Lista de resultados con scroll interno */}
         <div className="mt-4 px-4">
-          <div className="max-h-[45vh] overflow-y-auto rounded-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <ListaResultados
-              busquedaRealizada={busquedaRealizada}
-              isLoading={isLoading}
-              resultados={resultados}
-              tituloResultados={tituloResultados}
-              activaId={activaId}
-              expandidaId={expandidaId}
-              onSeleccionarItem={(id) => {
-                setActivaId(id)
-                setExpandidaId((prev) => (prev === id ? prev : id))
-              }}
-              onToggleExpandir={(id) =>
-                setExpandidaId((prev) => (prev === id ? null : id))
-              }
-            />
+          <div className="max-h-[45vh] flex flex-col rounded-xl border border-border bg-card overflow-hidden">
+            <div className="flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <ListaResultados
+                busquedaRealizada={busquedaRealizada}
+                isLoading={isLoading}
+                resultados={resultados}
+                tituloResultados={tituloResultados}
+                activaId={activaId}
+                expandidaId={expandidaId}
+                onSeleccionarItem={(id) => {
+                  setActivaId(id)
+                  setExpandidaId((prev) => (prev === id ? prev : id))
+                }}
+                onToggleExpandir={(id) =>
+                  setExpandidaId((prev) => (prev === id ? null : id))
+                }
+              />
+            </div>
+            {/* Copyright para versión móvil fijo al final de la caja de resultados */}
+            <div className="py-2.5 text-center border-t border-border/60 bg-muted/5 shrink-0">
+              <p className="text-[10px] text-muted-foreground/60 font-medium">
+                Todos los derechos reservados 2024 Starken
+              </p>
+            </div>
           </div>
         </div>
 
@@ -448,19 +463,21 @@ export function BuscadorSucursales() {
   return (
     <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
       {/* Banner de Cabecera Horizontal Completo */}
-      <div className="bg-gradient-to-r from-[#e8f3ea]/70 via-card to-card border-b border-border px-6 py-4 flex flex-col gap-0.5 shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary tracking-wide uppercase">
-            Red Starken
-          </span>
+      {!hideHeader && (
+        <div className="bg-gradient-to-r from-[#e8f3ea]/70 via-card to-card border-b border-border px-6 py-4 flex flex-col gap-0.5 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary tracking-wide uppercase">
+              Red Starken
+            </span>
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-foreground font-[family-name:var(--font-exo)] leading-tight">
+            Encuentra tu Punto de Envío o Retiro
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Ubica sucursales tradicionales, puntos 24/7, alianzas y Soy Starken en todo Chile.
+          </p>
         </div>
-        <h1 className="text-2xl font-black tracking-tight text-foreground font-[family-name:var(--font-exo)] leading-tight">
-          Encuentra tu Punto de Envío o Retiro
-        </h1>
-        <p className="text-xs text-muted-foreground">
-          Ubica sucursales tradicionales, buzones 24/7 y puntos de alianza en todo Chile.
-        </p>
-      </div>
+      )}
 
       {/* Resultados: lista + mapa */}
       <div className="grid w-full flex-1 grid-cols-1 lg:grid-cols-[460px_1fr] min-h-0">
@@ -507,13 +524,20 @@ export function BuscadorSucursales() {
 
             {/* Avisos de geolocalización (solo desktop) */}
             {(geoError || geoAviso) && (
-              <div className="mt-4 px-5 pb-5">
+              <div className="mt-4 px-4 pb-5">
                 <BannerAviso
                   tipo={geoError ? "error" : "aviso"}
                   mensaje={(geoError ?? geoAviso)!}
                 />
               </div>
             )}
+          </div>
+
+          {/* Copyright para versión escritorio fijo en la parte inferior del sidebar */}
+          <div className="py-3 text-center border-t border-border bg-card shrink-0">
+            <p className="text-[11px] text-muted-foreground/60 font-medium">
+              Todos los derechos reservados 2024 Starken
+            </p>
           </div>
         </aside>
 
@@ -607,7 +631,7 @@ function ListaResultados({
 
   return (
     <>
-      <div className="sticky top-0 z-10 flex items-baseline justify-between bg-card px-5 py-4 border-b border-border/50 shadow-sm">
+      <div className="sticky top-0 z-10 flex items-baseline justify-between bg-card px-4 py-4 border-b border-border/50 shadow-sm">
         <h2 className="text-sm font-bold text-foreground text-pretty">
           {tituloResultados}
         </h2>
@@ -616,7 +640,7 @@ function ListaResultados({
           {resultados.length === 1 ? "sucursal" : "sucursales"}
         </span>
       </div>
-      <ul className="flex flex-col gap-3 px-5 pt-3 pb-5">
+      <ul className="flex flex-col gap-3 px-4 pt-3 pb-5">
         {resultados.map((s) => (
           <div key={s.id} id={`tarjeta-${s.id}`} className="scroll-mt-[60px]">
             <TarjetaSucursal

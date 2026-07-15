@@ -28,7 +28,7 @@ export function AlertaInformativa() {
 
   return (
     <div className="bg-banner text-banner-foreground">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-3 lg:px-8">
+      <div className="flex w-full items-center justify-between gap-4 px-5 py-3 lg:px-8">
         <Info className="size-4 shrink-0" aria-hidden="true" />
         
         <div 

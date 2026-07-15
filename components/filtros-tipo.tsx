@@ -70,26 +70,13 @@ export function FiltrosTipo({ activo, onCambiar, scrollable = false }: FiltrosTi
               />
             )}
             <span>{f.label}</span>
-            {seleccionado && scrollable && (
+            {seleccionado && (
               <X className="size-3.5 ml-1 shrink-0 opacity-70 hover:opacity-100 transition-opacity" />
             )}
           </button>
         )
       })}
 
-      {activo !== "todas" && !scrollable && (
-        <button
-          type="button"
-          onClick={() => onCambiar("todas")}
-          className={cn(
-            "flex items-center gap-1 rounded-full border border-transparent bg-[#414745] px-2.5 py-1.5 text-xs font-bold text-white hover:bg-[#2d3230] transition-colors cursor-pointer shadow-sm",
-            scrollable && "shrink-0 whitespace-nowrap"
-          )}
-          title="Limpiar filtro"
-        >
-          Limpiar ✕
-        </button>
-      )}
     </div>
   )
 }

@@ -42,7 +42,7 @@ export function TarjetaSucursal({
           : "border-border hover:border-primary/40 hover:shadow-sm",
       )}
     >
-      <div className="flex items-start gap-3 p-4">
+      <div className="flex items-start gap-3 py-4 px-[10px] lg:p-4">
         <Image
           src={TIPO_ICON[sucursal.tipo] || "/placeholder.svg"}
           alt=""
@@ -109,7 +109,7 @@ export function TarjetaSucursal({
       </div>
 
       {expandida && (
-        <div className="border-t border-border px-4 py-4 text-xs">
+        <div className="border-t border-border py-4 px-[10px] lg:px-4 text-xs">
           <HorarioAtencion horario={sucursal.horario} />
 
           <UltimoRetiro horario={sucursal.horario} ultimoRetiro={sucursal.ultimoRetiro} />
